@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LoanTrack Pro — Private Lending Portfolio</title>
+<style>
+/* =====================================================
+   CSS CUSTOM PROPERTIES — Edit colors here
+   ===================================================== */
+:root {
+  --bg-app:      #f0f2f5;
+  --bg-card:     #ffffff;
+  --bg-row:      #f8f9fb;
+  --text-1:      #111827;
+  --text-2:      #4b5563;
+  --text-3:      #9ca3af;
+  --border:      #e5e7eb;
+  --accent:      #2563eb;
+  --accent-h:    #1d4ed8;
+  --accent-bg:   #eff6ff;
+  --green:       #16a34a;
+  --green-bg:    #f0fdf4;
+  --amber:       #d97706;
+  --amber-bg:    #fffbeb;
+  --red:         #dc2626;
+  --red-bg:      #fef2f2;
+  --shadow:      0 1px 4px rgba(0,0,0,.07), 0 0 0 1px rgba(0,0,0,.04);
+  --shadow-lg:   0 8px 24px rgba(0,0,0,.12);
+  --r:           8px;
+  --r-lg:        12px;
+}
+[data-theme="dark"] {
+  --bg-app:      #0d1117;
+  --bg-card:     #161b22;
+  --bg-row:      #1c2230;
+  --text-1:      #e6edf3;
+  --text-2:      #8b949e;
+  --text-3:      #484f58;
+  --border:      #21262d;
+  --accent:      #58a6ff;
+  --accent-h:    #79bbff;
+  --accent-bg:   #0d2340;
+  --green:       #3fb950;
+  --green-bg:    #0a2718;
+  --amber:       #f0b429;
+  --amber-bg:    #2d2009;
+  --red:         #f85149;
+  --red-bg:      #2d1212;
+  --shadow:      0 1px 4px rgba(0,0,0,.4);
+  --shadow-lg:   0 8px 24px rgba(0,0,0,.5);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  background: var(--bg-app);
+  color: var(--text-1);
+  font-size: 13.5px;
+  line-height: 1.55;
+  min-height: 100vh;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code {
+  font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+  font-size: 11.5px;
+  background: var(--bg-row);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* Layout */
+.shell { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 216px; min-width: 216px;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  position: fixed; inset: 0 auto 0 0;
+  z-index: 200;
+  overflow-y: auto;
+}
+.brand { padding: 18px 16px 14px; border-bottom: 1px solid var(--border); }
+.brand-name { font-size: 15px; font-weight: 800; color: var(--accent); letter-spacing: -.3px; }
+.brand-sub  { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+
+.sidenav { flex: 1; padding: 10px 8px; }
+.nav-btn {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 10px; width: 100%; border: none; background: none;
+  border-radius: var(--r); cursor: pointer;
+  color: var(--text-2); font-size: 13px; font-weight: 500;
+  transition: background .12s, color .12s;
+  margin-bottom: 1px; text-align: left;
+}
+.nav-btn:hover { background: var(--bg-row); color: var(--text-1); }
+.nav-btn.active { background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+.nav-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+.sidebar-footer { padding: 8px; border-top: 1px solid var(--border); }
+
+/* Main */
+.main { margin-left: 216px; flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 11px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.page-title { font-size: 15px; font-weight: 700; white-space: nowrap; }
+.topbar-right { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.content { padding: 24px; flex: 1; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 13px; border-radius: var(--r);
+  font-size: 12.5px; font-weight: 600; cursor: pointer;
+  border: none; transition: all .13s; white-space: nowrap;
+}
+.btn svg { width: 13px; height: 13px; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-h); }
+.btn-ghost { background: var(--bg-row); color: var(--text-1); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--border); }
+.btn-sm { padding: 4px 9px; font-size: 11.5px; }
+.btn-icon {
+  padding: 5px; border-radius: var(--r); background: var(--bg-row);
+  border: 1px solid var(--border); cursor: pointer; color: var(--text-2);
+  display: inline-flex; align-items: center; transition: all .12s;
+}
+.btn-icon:hover { color: var(--text-1); background: var(--border); }
+
+/* Cards */
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow); }
+.card-body  { padding: 20px; }
+.card-title { font-size: 13.5px; font-weight: 700; margin-bottom: 14px; }
+
+/* KPI Grid */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 14px; margin-bottom: 22px; }
+.kpi { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 16px 18px; box-shadow: var(--shadow); }
+.kpi-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-3); margin-bottom: 7px; }
+.kpi-value { font-size: 21px; font-weight: 800; line-height: 1.1; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.kpi-sub   { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+.kpi.c-accent .kpi-value { color: var(--accent); }
+.kpi.c-green  .kpi-value { color: var(--green); }
+.kpi.c-red    .kpi-value { color: var(--red); }
+.kpi.c-amber  .kpi-value { color: var(--amber); }
+
+/* Outstanding hero box */
+.outstanding-hero {
+  background: var(--accent-bg); border: 2px solid var(--accent);
+  border-radius: var(--r-lg); padding: 18px 22px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  margin-bottom: 20px; flex-wrap: wrap;
+}
+.oh-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--accent); margin-bottom: 5px; }
+.oh-value { font-size: 30px; font-weight: 900; color: var(--accent); font-variant-numeric: tabular-nums; }
+
+/* Badges */
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
+.b-active       { background: var(--green-bg); color: var(--green); }
+.b-closed       { background: var(--bg-row);   color: var(--text-3); }
+.b-late         { background: var(--red-bg);   color: var(--red); }
+.b-restructured { background: var(--amber-bg); color: var(--amber); }
+
+/* Table */
+.table-wrap { overflow-x: auto; border-radius: var(--r-lg); }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+thead th {
+  background: var(--bg-row); padding: 9px 11px;
+  text-align: left; font-size: 10.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .4px; color: var(--text-3);
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+thead th.sort { cursor: pointer; user-select: none; }
+thead th.sort:hover { color: var(--text-1); }
+tbody td { padding: 9px 11px; border-bottom: 1px solid var(--border); color: var(--text-1); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--bg-row); }
+.num { font-variant-numeric: tabular-nums; font-weight: 600; }
+.num-accent { color: var(--accent); font-size: 13.5px; }
+.num-green  { color: var(--green); }
+tr.row-late td { background: var(--red-bg) !important; }
+.tfoot-total td { font-weight: 700; background: var(--bg-row) !important; }
+
+/* Toolbar */
+.toolbar { display: flex; gap: 9px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+.inp-search, .inp-select {
+  padding: 7px 11px; border-radius: var(--r);
+  border: 1px solid var(--border); background: var(--bg-card);
+  color: var(--text-1); font-size: 12.5px; outline: none; font-family: inherit;
+  transition: border-color .13s;
+}
+.inp-search { min-width: 210px; }
+.inp-search:focus, .inp-select:focus { border-color: var(--accent); }
+.inp-select { cursor: pointer; }
+
+/* Tabs */
+.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
+.tab {
+  padding: 8px 15px; font-size: 12.5px; font-weight: 600;
+  color: var(--text-3); border: none; background: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  cursor: pointer; transition: all .13s;
+}
+.tab:hover { color: var(--text-1); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* Modal */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5); backdrop-filter: blur(2px);
+  z-index: 500; display: flex; align-items: center; justify-content: center; padding: 16px;
+}
+.modal {
+  background: var(--bg-card); border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg); width: 100%; max-width: 580px;
+  max-height: 92vh; overflow-y: auto; border: 1px solid var(--border);
+}
+.modal-head {
+  padding: 18px 22px 15px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; background: var(--bg-card); z-index: 1;
+}
+.modal-title { font-size: 14.5px; font-weight: 700; }
+.modal-body { padding: 20px 22px; }
+.modal-foot {
+  padding: 14px 22px; border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 8px;
+  position: sticky; bottom: 0; background: var(--bg-card);
+}
+
+/* Form */
+.fg    { display: flex; flex-direction: column; gap: 5px; }
+.fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+.fgrid .full { grid-column: 1 / -1; }
+label  { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-2); }
+.inp {
+  padding: 8px 10px; border-radius: var(--r);
+  border: 1px solid var(--border); background: var(--bg-card);
+  color: var(--text-1); font-size: 13px; font-family: inherit;
+  outline: none; transition: border-color .13s; width: 100%;
+}
+.inp:focus { border-color: var(--accent); }
+textarea.inp { resize: vertical; min-height: 70px; }
+.form-hint { font-size: 11px; color: var(--text-3); }
+.form-warn { font-size: 11.5px; color: var(--amber); background: var(--amber-bg); padding: 6px 10px; border-radius: var(--r); margin-top: 5px; }
+
+/* Bar chart */
+.bar-chart { display: flex; align-items: flex-end; gap: 3px; height: 100px; }
+.bar-col    { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.bar        { width: 100%; background: var(--accent); border-radius: 3px 3px 0 0; min-height: 2px; opacity: .8; transition: opacity .15s; cursor: default; }
+.bar:hover  { opacity: 1; }
+.bar-lbl    { font-size: 9.5px; color: var(--text-3); white-space: nowrap; }
+.bar-amt    { font-size: 9px; color: var(--text-2); }
+
+/* Alert */
+.alert { border-radius: var(--r-lg); padding: 13px 16px; margin-bottom: 18px; display: flex; gap: 10px; align-items: flex-start; border: 1px solid; }
+.alert-red   { background: var(--red-bg);   border-color: var(--red);   color: var(--red); }
+.alert svg   { flex-shrink: 0; margin-top: 1px; }
+.alert-body  { flex: 1; }
+.alert-title { font-weight: 700; font-size: 12.5px; margin-bottom: 6px; }
+
+/* Detail */
+.detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+.df-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .4px; color: var(--text-3); margin-bottom: 3px; }
+.df-value { font-size: 13.5px; font-weight: 600; color: var(--text-1); }
+
+/* Section */
+.section-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 13px; }
+.section-title { font-size: 13.5px; font-weight: 700; }
+.report-section { margin-bottom: 20px; }
+
+/* Import zone */
+.drop-zone { border: 2px dashed var(--border); border-radius: var(--r-lg); padding: 28px; text-align: center; cursor: pointer; transition: border-color .15s; }
+.drop-zone:hover { border-color: var(--accent); }
+.drop-zone p { color: var(--text-3); font-size: 12px; margin-top: 6px; }
+
+/* Back link */
+.back-link { display: inline-flex; align-items: center; gap: 5px; color: var(--text-2); font-size: 12.5px; font-weight: 600; cursor: pointer; border: none; background: none; padding: 0; margin-bottom: 16px; }
+.back-link:hover { color: var(--text-1); }
+
+.divider { border: none; border-top: 1px solid var(--border); margin: 15px 0; }
+
+/* Toast */
+.toast { position: fixed; bottom: 22px; right: 22px; background: var(--text-1); color: var(--bg-card); padding: 10px 16px; border-radius: var(--r); font-size: 12.5px; font-weight: 600; z-index: 999; box-shadow: var(--shadow-lg); opacity: 0; transition: opacity .25s; pointer-events: none; }
+.toast.on { opacity: 1; pointer-events: auto; }
+
+/* Empty state */
+.empty { text-align: center; padding: 42px 20px; color: var(--text-3); }
+.empty h3 { font-size: 14px; color: var(--text-2); margin-bottom: 6px; }
+
+/* Utilities */
+.nowrap { white-space: nowrap; }
+.muted  { color: var(--text-3); }
+.small  { font-size: 11.5px; }
+.bold   { font-weight: 700; }
+
+/* Print */
+@media print {
+  .sidebar, .topbar, .btn, .toolbar, .overlay, .toast { display: none !important; }
+  .main { margin-left: 0 !important; }
+  .content { padding: 0 !important; }
+  .card { box-shadow: none !important; }
+}
+
+/* Responsive */
+@media (max-width: 780px) {
+  .sidebar { width: 200px; transform: translateX(-100%); transition: transform .25s; }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .fgrid { grid-template-columns: 1fr; }
+  .detail-grid { grid-template-columns: 1fr 1fr; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body data-theme="light">
+
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="brand-name">LoanTrack Pro</div>
+    <div class="brand-sub">Private Lending Portfolio</div>
+  </div>
+  <nav class="sidenav">
+    <button class="nav-btn active" id="nb-dashboard" onclick="go('dashboard')">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 10a8 8 0 1116 0A8 8 0 012 10zm8-4a1 1 0 00-1 1v3H6a1 1 0 100 2h3v3a1 1 0 102 0v-3h3a1 1 0 100-2h-3V7a1 1 0 00-1-1z"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-btn" id="nb-loans" onclick="go('loans')">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zm8 0a3 3 0 11-6 0 3 3 0 016 0zm-4.07 11c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+      Borrowers &amp; Loans
+    </button>
+    <button class="nav-btn" id="nb-reports" onclick="go('reports')">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+      Reports
+    </button>
+    <button class="nav-btn" id="nb-import" onclick="go('import')">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+      Import / Export
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <div id="save-indicator" style="padding:6px 10px 2px;font-size:10.5px;color:var(--text-3);display:flex;align-items:center;gap:5px">
+      <svg width="10" height="10" viewBox="0 0 20 20" fill="currentColor" id="save-icon"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+      <span id="save-lbl">No data saved yet</span>
+    </div>
+    <button class="nav-btn" id="theme-btn" onclick="toggleTheme()">
+      <svg id="theme-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+      <span id="theme-lbl">Dark Mode</span>
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <header class="topbar">
+    <span class="page-title" id="page-title">Dashboard</span>
+    <div class="topbar-right">
+      <button class="btn btn-primary" onclick="openLoanModal(null)">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+        New Loan
+      </button>
+    </div>
+  </header>
+  <div class="content" id="content"></div>
+</main>
+
+</div>
+
+<div id="modal-root"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ====================================================================
+   LOANTRACK PRO
+   ====================================================================
+
+   CORE FORMULA (edit calcLoan() below to change):
+     Outstanding Principal  = Original Principal - SUM(principalPortion)
+     Income Received        = SUM(incomePortion)
+     Total Cash Received    = Principal Repaid + Income Received
+
+   Income-only payments do NOT reduce principal.
+   Mixed payments split into income + principal portions.
+   Principal cannot go below zero (auto-capped).
+   Loan auto-closes when outstanding reaches zero.
+
+   ==================================================================== */
+
+// ══════════════════════════════════════════════════════
+// SAMPLE DEMO DATA — replace with your own or import CSV
+// ══════════════════════════════════════════════════════
+let loans = [
+  { id:'L001', borrowerName:'Robert Chen',    accountNumber:'ACC-2023-001', startDate:'2023-03-15', originalPrincipal:500000, monthlyIncomeAmount:5000,  paymentDueDay:15, status:'Active',       loanTermMonths:60,  loanStructure:'interest_only',       contactInfo:'robertchen@email.com | +1 555-0101', notes:'Secured against commercial property. Reliable payer.' },
+  { id:'L002', borrowerName:'Maria Santos',   accountNumber:'ACC-2023-002', startDate:'2023-06-01', originalPrincipal:200000, monthlyIncomeAmount:2000,  paymentDueDay:1,  status:'Active',       loanTermMonths:36,  loanStructure:'flexible',            contactInfo:'maria.santos@biz.com | +1 555-0202',  notes:'Business expansion loan. Pays via bank transfer.' },
+  { id:'L003', borrowerName:'James Williams', accountNumber:'ACC-2023-003', startDate:'2023-09-01', originalPrincipal:150000, monthlyIncomeAmount:1875,  paymentDueDay:5,  status:'Late',         loanTermMonths:24,  loanStructure:'interest_only',       contactInfo:'+1 555-0303',                         notes:'Missed last two payments. Follow-up call needed.' },
+  { id:'L004', borrowerName:'Susan Park',     accountNumber:'ACC-2022-004', startDate:'2022-01-10', originalPrincipal:100000, monthlyIncomeAmount:1000,  paymentDueDay:10, status:'Closed',       loanTermMonths:24,  loanStructure:'lump_sum_settlement',  contactInfo:'susan.park@email.com',                notes:'Loan fully repaid June 2022. Good standing borrower.' },
+  { id:'L005', borrowerName:'David Okafor',   accountNumber:'ACC-2024-005', startDate:'2024-02-01', originalPrincipal:300000, monthlyIncomeAmount:3500,  paymentDueDay:1,  status:'Active',       loanTermMonths:18,  loanStructure:'reducing_balance',    contactInfo:'david.okafor@corp.com | +1 555-0505',  notes:'Real estate bridge loan. Quarterly principal payments.' },
+  { id:'L006', borrowerName:'Linda Torres',   accountNumber:'ACC-2024-006', startDate:'2024-05-15', originalPrincipal:75000,  monthlyIncomeAmount:900,   paymentDueDay:15, status:'Restructured', loanTermMonths:36,  loanStructure:'flexible',            contactInfo:'linda.t@email.com',                   notes:'Restructured Oct 2024. Extended by 12 months, same rate.' },
+];
+
+let _pid = 200;
+const pid = () => 'P' + (++_pid);
+
+let payments = [
+  // Robert Chen (L001)
+  { id:pid(), loanId:'L001', paymentDate:'2023-04-15', amount:5000,  paymentType:'monthly_income',     incomePortion:5000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'April income' },
+  { id:pid(), loanId:'L001', paymentDate:'2023-05-15', amount:5000,  paymentType:'monthly_income',     incomePortion:5000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'May income' },
+  { id:pid(), loanId:'L001', paymentDate:'2023-06-15', amount:5000,  paymentType:'monthly_income',     incomePortion:5000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'June income' },
+  { id:pid(), loanId:'L001', paymentDate:'2023-07-15', amount:5000,  paymentType:'monthly_income',     incomePortion:5000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'July income' },
+  { id:pid(), loanId:'L001', paymentDate:'2023-08-15', amount:5000,  paymentType:'monthly_income',     incomePortion:5000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'August income' },
+  { id:pid(), loanId:'L001', paymentDate:'2023-09-15', amount:30000, paymentType:'mixed',              incomePortion:5000,  principalPortion:25000, paymentMethod:'bank_transfer', remarks:'Sep income + partial principal' },
+  { id:pid(), loanId:'L001', paymentDate:'2023-10-15', amount:5000,  paymentType:'monthly_income',     incomePortion:5000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'October income' },
+  { id:pid(), loanId:'L001', paymentDate:'2023-11-15', amount:5000,  paymentType:'monthly_income',     incomePortion:5000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'November income' },
+  { id:pid(), loanId:'L001', paymentDate:'2023-12-15', amount:55000, paymentType:'mixed',              incomePortion:5000,  principalPortion:50000, paymentMethod:'cash',          remarks:'December income + year-end principal payment' },
+  { id:pid(), loanId:'L001', paymentDate:'2024-01-15', amount:5000,  paymentType:'monthly_income',     incomePortion:5000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'January income' },
+  { id:pid(), loanId:'L001', paymentDate:'2024-02-15', amount:5000,  paymentType:'monthly_income',     incomePortion:5000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'February income' },
+  { id:pid(), loanId:'L001', paymentDate:'2024-03-15', amount:5000,  paymentType:'monthly_income',     incomePortion:5000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'March income' },
+  { id:pid(), loanId:'L001', paymentDate:'2024-04-15', amount:5000,  paymentType:'monthly_income',     incomePortion:5000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'April income' },
+  { id:pid(), loanId:'L001', paymentDate:'2024-05-15', amount:5000,  paymentType:'monthly_income',     incomePortion:5000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'May income' },
+  // Maria Santos (L002)
+  { id:pid(), loanId:'L002', paymentDate:'2023-07-01', amount:2000,  paymentType:'monthly_income',     incomePortion:2000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'July income' },
+  { id:pid(), loanId:'L002', paymentDate:'2023-08-01', amount:2000,  paymentType:'monthly_income',     incomePortion:2000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'August income' },
+  { id:pid(), loanId:'L002', paymentDate:'2023-09-01', amount:2000,  paymentType:'monthly_income',     incomePortion:2000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'September income' },
+  { id:pid(), loanId:'L002', paymentDate:'2023-10-01', amount:22000, paymentType:'mixed',              incomePortion:2000,  principalPortion:20000, paymentMethod:'cash',          remarks:'October income + principal payment' },
+  { id:pid(), loanId:'L002', paymentDate:'2023-11-01', amount:2000,  paymentType:'monthly_income',     incomePortion:2000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'November income' },
+  { id:pid(), loanId:'L002', paymentDate:'2023-12-01', amount:2000,  paymentType:'monthly_income',     incomePortion:2000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'December income' },
+  { id:pid(), loanId:'L002', paymentDate:'2024-01-01', amount:2000,  paymentType:'monthly_income',     incomePortion:2000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'January income' },
+  { id:pid(), loanId:'L002', paymentDate:'2024-02-01', amount:2000,  paymentType:'monthly_income',     incomePortion:2000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'February income' },
+  { id:pid(), loanId:'L002', paymentDate:'2024-03-01', amount:2000,  paymentType:'monthly_income',     incomePortion:2000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'March income' },
+  // James Williams (L003) — late payer
+  { id:pid(), loanId:'L003', paymentDate:'2023-10-05', amount:1875,  paymentType:'monthly_income',     incomePortion:1875,  principalPortion:0,     paymentMethod:'cash',          remarks:'October income' },
+  { id:pid(), loanId:'L003', paymentDate:'2023-11-05', amount:1875,  paymentType:'monthly_income',     incomePortion:1875,  principalPortion:0,     paymentMethod:'cash',          remarks:'November income' },
+  { id:pid(), loanId:'L003', paymentDate:'2024-01-12', amount:1875,  paymentType:'monthly_income',     incomePortion:1875,  principalPortion:0,     paymentMethod:'cash',          remarks:'Late — December received in January' },
+  // Susan Park (L004) — fully repaid
+  { id:pid(), loanId:'L004', paymentDate:'2022-02-10', amount:1000,  paymentType:'monthly_income',     incomePortion:1000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'Feb 2022' },
+  { id:pid(), loanId:'L004', paymentDate:'2022-03-10', amount:1000,  paymentType:'monthly_income',     incomePortion:1000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'Mar 2022' },
+  { id:pid(), loanId:'L004', paymentDate:'2022-04-10', amount:1000,  paymentType:'monthly_income',     incomePortion:1000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'Apr 2022' },
+  { id:pid(), loanId:'L004', paymentDate:'2022-05-10', amount:1000,  paymentType:'monthly_income',     incomePortion:1000,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'May 2022' },
+  { id:pid(), loanId:'L004', paymentDate:'2022-06-10', amount:101000,paymentType:'mixed',              incomePortion:1000,  principalPortion:100000,paymentMethod:'bank_transfer', remarks:'Full principal repayment + June income' },
+  // David Okafor (L005)
+  { id:pid(), loanId:'L005', paymentDate:'2024-03-01', amount:3500,  paymentType:'monthly_income',     incomePortion:3500,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'March income' },
+  { id:pid(), loanId:'L005', paymentDate:'2024-04-01', amount:3500,  paymentType:'monthly_income',     incomePortion:3500,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'April income' },
+  { id:pid(), loanId:'L005', paymentDate:'2024-05-01', amount:53500, paymentType:'mixed',              incomePortion:3500,  principalPortion:50000, paymentMethod:'bank_transfer', remarks:'May income + Q1 principal payment' },
+  { id:pid(), loanId:'L005', paymentDate:'2024-06-01', amount:3500,  paymentType:'monthly_income',     incomePortion:3500,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'June income' },
+  { id:pid(), loanId:'L005', paymentDate:'2024-07-01', amount:3500,  paymentType:'monthly_income',     incomePortion:3500,  principalPortion:0,     paymentMethod:'bank_transfer', remarks:'July income' },
+  { id:pid(), loanId:'L005', paymentDate:'2024-08-01', amount:53500, paymentType:'mixed',              incomePortion:3500,  principalPortion:50000, paymentMethod:'bank_transfer', remarks:'Aug income + Q2 principal payment' },
+  // Linda Torres (L006) — restructured
+  { id:pid(), loanId:'L006', paymentDate:'2024-06-15', amount:900,   paymentType:'monthly_income',     incomePortion:900,   principalPortion:0,     paymentMethod:'cash',          remarks:'June income' },
+  { id:pid(), loanId:'L006', paymentDate:'2024-07-15', amount:900,   paymentType:'monthly_income',     incomePortion:900,   principalPortion:0,     paymentMethod:'cash',          remarks:'July income' },
+  { id:pid(), loanId:'L006', paymentDate:'2024-10-15', amount:900,   paymentType:'monthly_income',     incomePortion:900,   principalPortion:0,     paymentMethod:'cash',          remarks:'October — post-restructure' },
+  { id:pid(), loanId:'L006', paymentDate:'2024-11-15', amount:900,   paymentType:'monthly_income',     incomePortion:900,   principalPortion:0,     paymentMethod:'cash',          remarks:'November' },
+  { id:pid(), loanId:'L006', paymentDate:'2024-12-15', amount:5900,  paymentType:'mixed',              incomePortion:900,   principalPortion:5000,  paymentMethod:'cash',          remarks:'December — income + partial principal' },
+];
+
+// ══════════════════════════════════════════════════════
+// CALCULATION ENGINE
+// ══════════════════════════════════════════════════════
+// ▶ EDIT HERE to change calculation logic
+//   principalPortion  → reduces outstanding principal
+//   incomePortion     → counted as income only, does NOT reduce principal
+function calcLoan(loanId) {
+  const loan = loans.find(l => l.id === loanId);
+  if (!loan) return null;
+  const ps = payments.filter(p => p.loanId === loanId);
+  // Sum principal repayments only
+  const principalRepaid = ps.reduce((s, p) => s + (p.principalPortion || 0), 0);
+  // Sum income portions only
+  const incomeReceived  = ps.reduce((s, p) => s + (p.incomePortion   || 0), 0);
+  // Principal cannot go below zero
+  const outstanding = Math.max(0, loan.originalPrincipal - principalRepaid);
+  const totalReceived = principalRepaid + incomeReceived;
+  const sorted = [...ps].sort((a, b) => b.paymentDate.localeCompare(a.paymentDate));
+  return { principalRepaid, incomeReceived, outstanding, totalReceived,
+           lastPayment: sorted[0]?.paymentDate || null, count: ps.length };
+}
+
+function globalStats() {
+  autoClose();
+  let origTotal=0, outTotal=0, repaidTotal=0, incomeTotal=0, recvTotal=0;
+  loans.forEach(l => {
+    const c = calcLoan(l.id);
+    origTotal   += l.originalPrincipal;
+    outTotal    += c.outstanding;
+    repaidTotal += c.principalRepaid;
+    incomeTotal += c.incomeReceived;
+    recvTotal   += c.totalReceived;
+  });
+  const active = loans.filter(l => ['Active','Late','Restructured'].includes(l.status));
+  const closed = loans.filter(l => l.status === 'Closed');
+  const late   = loans.filter(l => l.status === 'Late');
+  return { origTotal, outTotal, repaidTotal, incomeTotal, recvTotal,
+           active: active.length, closed: closed.length, late: late.length, total: loans.length };
+}
+
+// Auto-mark Closed when outstanding = 0
+function autoClose() {
+  loans.forEach(l => {
+    if (l.status !== 'Closed') {
+      const c = calcLoan(l.id);
+      if (c && c.outstanding === 0) l.status = 'Closed';
+    }
+  });
+}
+
+// Monthly collections for last N months
+function monthlySummary(n) {
+  const now = new Date();
+  return Array.from({ length: n }, (_, i) => {
+    const d   = new Date(now.getFullYear(), now.getMonth() - (n - 1 - i), 1);
+    const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    const lbl = d.toLocaleString('default', { month: 'short', year: '2-digit' });
+    const ps  = payments.filter(p => p.paymentDate.startsWith(key));
+    return {
+      key, lbl,
+      total:     ps.reduce((s, p) => s + p.amount,                0),
+      income:    ps.reduce((s, p) => s + (p.incomePortion   || 0), 0),
+      principal: ps.reduce((s, p) => s + (p.principalPortion || 0), 0),
+      count: ps.length,
+    };
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// FORMATTING
+// ══════════════════════════════════════════════════════
+// ▶ Change currency / locale here
+const fmt$ = v =>
+  new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', maximumFractionDigits:0 }).format(v);
+const dtFmt = d =>
+  d ? new Date(d + 'T00:00:00').toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }) : '—';
+const badge = s => {
+  const cls = { Active:'b-active', Closed:'b-closed', Late:'b-late', Restructured:'b-restructured' };
+  return '<span class="badge ' + (cls[s]||'') + '">' + s + '</span>';
+};
+// ▶ Payment type display labels — edit here to rename
+const PT_META = {
+  monthly_income:    { label:'Interest Payment',          color:'var(--green)',  desc:'Principal stays the same — income only' },
+  principal_repayment:{ label:'Monthly Principal Reduction', color:'var(--accent)', desc:'Regular installment — reduces outstanding principal' },
+  lump_sum:          { label:'Lump Sum Principal Payment', color:'#7c3aed',      desc:'One-time offset — reduces outstanding principal' },
+  mixed:             { label:'Mixed: Interest + Principal', color:'var(--amber)', desc:'Custom split — part income, part principal reduction' },
+};
+const ptLabel = t => (PT_META[t]?.label  || t);
+const ptColor = t => (PT_META[t]?.color  || 'inherit');
+const ptDesc  = t => (PT_META[t]?.desc   || '');
+const pmLabel = m => ({ cash:'Cash', bank_transfer:'Bank Transfer', other:'Other' }[m] || m);
+
+// ══════════════════════════════════════════════════════
+// APP STATE
+// ══════════════════════════════════════════════════════
+let curView    = 'dashboard';
+let curLoan    = null;
+let detailTab  = 'overview';
+let searchQ    = '';
+let filterSt   = 'all';
+let sortBy     = 'startDate';
+let sortAsc    = false;
+
+// ══════════════════════════════════════════════════════
+// ROUTER
+// ══════════════════════════════════════════════════════
+function go(v, loanId) {
+  if (loanId && loanId !== curLoan) detailTab = 'overview';
+  curView = v;
+  curLoan = loanId || null;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const nb = document.getElementById('nb-' + (v === 'detail' ? 'loans' : v));
+  if (nb) nb.classList.add('active');
+  const titles = { dashboard:'Dashboard', loans:'Borrowers & Loans', detail:'Loan Detail', reports:'Reports', import:'Import & Export' };
+  document.getElementById('page-title').textContent = titles[v] || v;
+  autoClose();
+  render();
+}
+
+function render() {
+  const el = document.getElementById('content');
+  if (curView === 'dashboard') el.innerHTML = vDashboard();
+  else if (curView === 'loans')  el.innerHTML = vLoanList();
+  else if (curView === 'detail') el.innerHTML = vDetail(curLoan);
+  else if (curView === 'reports')el.innerHTML = vReports();
+  else if (curView === 'import') el.innerHTML = vImport();
+}
+
+// ══════════════════════════════════════════════════════
+// VIEW: DASHBOARD
+// ══════════════════════════════════════════════════════
+function vDashboard() {
+  const s   = globalStats();
+  const mon = monthlySummary(12);
+  const max = Math.max(...mon.map(m => m.total), 1);
+  const late = loans.filter(l => l.status === 'Late');
+  const recent = [...payments].sort((a,b) => b.paymentDate.localeCompare(a.paymentDate)).slice(0, 10);
+  const outByStatus = st => loans.filter(l => l.status === st)
+    .reduce((s, l) => s + calcLoan(l.id).outstanding, 0);
+
+  return `
+  <div class="kpi-grid">
+    <div class="kpi c-red">
+      <div class="kpi-label">Total Outstanding Principal</div>
+      <div class="kpi-value">${fmt$(s.outTotal)}</div>
+      <div class="kpi-sub">${s.active} active / late / restructured loan${s.active !== 1 ? 's' : ''}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Original Principal Deployed</div>
+      <div class="kpi-value">${fmt$(s.origTotal)}</div>
+      <div class="kpi-sub">${s.total} total loan${s.total !== 1 ? 's' : ''}</div>
+    </div>
+    <div class="kpi c-green">
+      <div class="kpi-label">Principal Repaid</div>
+      <div class="kpi-value">${fmt$(s.repaidTotal)}</div>
+      <div class="kpi-sub">${s.origTotal > 0 ? ((s.repaidTotal / s.origTotal) * 100).toFixed(1) : 0}% of total deployed</div>
+    </div>
+    <div class="kpi c-accent">
+      <div class="kpi-label">Monthly Income Collected</div>
+      <div class="kpi-value">${fmt$(s.incomeTotal)}</div>
+      <div class="kpi-sub">Cumulative (does not reduce principal)</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Total Cash Received</div>
+      <div class="kpi-value">${fmt$(s.recvTotal)}</div>
+      <div class="kpi-sub">Income + principal repayments</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Loan Accounts</div>
+      <div class="kpi-value">${s.active} <span style="font-size:14px;color:var(--text-3)">/ ${s.total}</span></div>
+      <div class="kpi-sub">${s.closed} closed &middot; ${s.late} late</div>
+    </div>
+  </div>
+
+  ${late.length ? `
+  <div class="alert alert-red">
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.645-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+    <div class="alert-body">
+      <div class="alert-title">Overdue Accounts (${late.length})</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${late.map(l => {
+          const c = calcLoan(l.id);
+          return `<div style="display:flex;justify-content:space-between;align-items:center;background:rgba(220,38,38,.1);padding:7px 11px;border-radius:6px;flex-wrap:wrap;gap:8px">
+            <span><strong>${l.borrowerName}</strong> <span class="muted small">${l.accountNumber}</span></span>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span class="small">Outstanding: <strong>${fmt$(c.outstanding)}</strong></span>
+              <button class="btn btn-ghost btn-sm" onclick="go('detail','${l.id}')">View</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  </div>` : ''}
+
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:18px">
+    <div class="card card-body">
+      <div class="card-title">Monthly Collections — Last 12 Months</div>
+      <div class="bar-chart">
+        ${mon.map(m => {
+          const h = Math.round((m.total / max) * 88);
+          return `<div class="bar-col">
+            <div class="bar-amt">${m.total > 0 ? '$' + (m.total / 1000).toFixed(0) + 'k' : ''}</div>
+            <div class="bar" style="height:${h}px" title="${m.lbl}: ${fmt$(m.total)}&#10;Income: ${fmt$(m.income)}&#10;Principal: ${fmt$(m.principal)}"></div>
+            <div class="bar-lbl">${m.lbl}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="card card-body">
+      <div class="card-title">Portfolio by Status</div>
+      ${['Active','Late','Restructured','Closed'].map(st => {
+        const cnt = loans.filter(l => l.status === st).length;
+        const out = outByStatus(st);
+        return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:7px">${badge(st)} <span class="muted small">${cnt}</span></div>
+          <span class="num small">${fmt$(out)}</span>
+        </div>`;
+      }).join('')}
+      <hr class="divider">
+      <div class="muted" style="font-size:11px">Outstanding principal by status</div>
+    </div>
+  </div>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <div style="padding:14px 18px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <span class="section-title">Recent Payments</span>
+      <button class="btn btn-ghost btn-sm" onclick="go('reports')">Full Report</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Date</th><th>Borrower</th><th>Type</th><th>Total</th>
+          <th>Income</th><th>Principal</th><th>Method</th><th>Remarks</th>
+        </tr></thead>
+        <tbody>
+          ${recent.map(p => {
+            const l = loans.find(x => x.id === p.loanId);
+            return `<tr>
+              <td class="nowrap">${dtFmt(p.paymentDate)}</td>
+              <td><a href="#" onclick="go('detail','${p.loanId}');return false">${l ? l.borrowerName : p.loanId}</a></td>
+              <td><span style="color:${ptColor(p.paymentType)};font-weight:700;font-size:11.5px">${ptLabel(p.paymentType)}</span></td>
+              <td class="num">${fmt$(p.amount)}</td>
+              <td class="num num-green">${p.incomePortion    ? fmt$(p.incomePortion)    : '<span class="muted">—</span>'}</td>
+              <td class="num" style="color:var(--accent)">${p.principalPortion ? fmt$(p.principalPortion) : '<span class="muted">—</span>'}</td>
+              <td class="small muted">${pmLabel(p.paymentMethod)}</td>
+              <td class="small muted">${p.remarks || '—'}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// VIEW: LOAN LIST
+// ══════════════════════════════════════════════════════
+function vLoanList() {
+  let list = [...loans];
+  if (searchQ) {
+    const q = searchQ.toLowerCase();
+    list = list.filter(l => l.borrowerName.toLowerCase().includes(q) || l.accountNumber.toLowerCase().includes(q));
+  }
+  if (filterSt !== 'all') list = list.filter(l => l.status === filterSt);
+  list.sort((a, b) => {
+    let av, bv;
+    if      (sortBy === 'borrowerName')      { av = a.borrowerName;      bv = b.borrowerName; }
+    else if (sortBy === 'startDate')         { av = a.startDate;         bv = b.startDate; }
+    else if (sortBy === 'originalPrincipal') { av = a.originalPrincipal; bv = b.originalPrincipal; }
+    else if (sortBy === 'outstanding')       { av = calcLoan(a.id).outstanding; bv = calcLoan(b.id).outstanding; }
+    if (av < bv) return sortAsc ? -1 : 1;
+    if (av > bv) return sortAsc ?  1 : -1;
+    return 0;
+  });
+  const arw = f => sortBy === f ? (sortAsc ? ' ↑' : ' ↓') : '';
+
+  return `
+  <div class="toolbar">
+    <input class="inp-search" type="search" placeholder="Search borrower or account…"
+      value="${searchQ}" oninput="searchQ=this.value;render()">
+    <select class="inp-select" onchange="filterSt=this.value;render()">
+      <option value="all"          ${filterSt==='all'          ?'selected':''}>All Statuses</option>
+      <option value="Active"       ${filterSt==='Active'       ?'selected':''}>Active</option>
+      <option value="Late"         ${filterSt==='Late'         ?'selected':''}>Late</option>
+      <option value="Restructured" ${filterSt==='Restructured' ?'selected':''}>Restructured</option>
+      <option value="Closed"       ${filterSt==='Closed'       ?'selected':''}>Closed</option>
+    </select>
+    <span class="muted small">${list.length} of ${loans.length} loan${loans.length !== 1 ? 's' : ''}</span>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th class="sort" onclick="srt('borrowerName')">Borrower${arw('borrowerName')}</th>
+          <th>Account</th>
+          <th>Structure</th>
+          <th class="sort" onclick="srt('startDate')">Start${arw('startDate')}</th>
+          <th class="sort" onclick="srt('originalPrincipal')">Original Principal${arw('originalPrincipal')}</th>
+          <th>Principal Repaid</th>
+          <th class="sort" onclick="srt('outstanding')">Outstanding Principal${arw('outstanding')}</th>
+          <th>Monthly Income</th>
+          <th>Income Received</th>
+          <th>Total Received</th>
+          <th>Last Payment</th>
+          <th>Status</th>
+          <th></th>
+        </tr></thead>
+        <tbody>
+          ${list.length === 0
+            ? `<tr><td colspan="13" style="text-align:center;padding:36px;color:var(--text-3)">No loans match your filters.</td></tr>`
+            : list.map(l => {
+                const c = calcLoan(l.id);
+                return `<tr class="${l.status === 'Late' ? 'row-late' : ''}">
+                  <td><a href="#" onclick="go('detail','${l.id}');return false" style="font-weight:700">${l.borrowerName}</a></td>
+                  <td class="muted small">${l.accountNumber}</td>
+                  <td>${lsBadge(l.loanStructure)}</td>
+                  <td class="nowrap">${dtFmt(l.startDate)}</td>
+                  <td class="num">${fmt$(l.originalPrincipal)}</td>
+                  <td class="num num-green">${fmt$(c.principalRepaid)}</td>
+                  <td class="num num-accent">${fmt$(c.outstanding)}</td>
+                  <td class="num">${fmt$(l.monthlyIncomeAmount)}</td>
+                  <td class="num num-green">${fmt$(c.incomeReceived)}</td>
+                  <td class="num">${fmt$(c.totalReceived)}</td>
+                  <td class="nowrap muted small">${dtFmt(c.lastPayment)}</td>
+                  <td>${badge(l.status)}</td>
+                  <td style="white-space:nowrap">
+                    <button class="btn btn-ghost btn-sm" onclick="go('detail','${l.id}')">View</button>
+                    <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:var(--red);margin-left:4px" onclick="deleteLoan('${l.id}')">Delete</button>
+                  </td>
+                </tr>`;
+              }).join('')
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function srt(f) {
+  if (sortBy === f) sortAsc = !sortAsc; else { sortBy = f; sortAsc = true; }
+  render();
+}
+
+// ══════════════════════════════════════════════════════
+// VIEW: LOAN DETAIL
+// ══════════════════════════════════════════════════════
+function vDetail(lid) {
+  const loan = loans.find(l => l.id === lid);
+  if (!loan) return '<div class="empty"><h3>Loan not found.</h3></div>';
+  const c   = calcLoan(lid);
+  const ps  = [...payments.filter(p => p.loanId === lid)].sort((a,b) => b.paymentDate.localeCompare(a.paymentDate));
+  const pct = loan.originalPrincipal > 0 ? ((c.principalRepaid / loan.originalPrincipal) * 100).toFixed(1) : 0;
+
+  return `
+  <button class="back-link" onclick="go('loans')">
+    <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+    Back to Loans
+  </button>
+
+  <!-- ★ The most important number — Current Outstanding Principal -->
+  <div class="outstanding-hero">
+    <div>
+      <div class="oh-label">Current Outstanding Principal</div>
+      <div class="oh-value">${fmt$(c.outstanding)}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+      <div>${badge(loan.status)}</div>
+      <div style="display:flex;gap:7px">
+        <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:var(--red)" onclick="deleteLoan('${loan.id}')">Delete Loan</button>
+        <button class="btn btn-ghost btn-sm" onclick="openLoanModal('${loan.id}')">Edit Loan</button>
+        <button class="btn btn-primary btn-sm" onclick="openPaymentModal('${loan.id}')">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/></svg>
+          Add Payment
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kpi-grid" style="margin-bottom:20px">
+    <div class="kpi"><div class="kpi-label">Original Principal</div><div class="kpi-value">${fmt$(loan.originalPrincipal)}</div></div>
+    <div class="kpi c-green">
+      <div class="kpi-label">Principal Repaid</div>
+      <div class="kpi-value">${fmt$(c.principalRepaid)}</div>
+      <div class="kpi-sub">${pct}% of original</div>
+    </div>
+    <div class="kpi c-accent">
+      <div class="kpi-label">Income Received</div>
+      <div class="kpi-value">${fmt$(c.incomeReceived)}</div>
+      <div class="kpi-sub">Does not reduce principal</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Total Cash Received</div>
+      <div class="kpi-value">${fmt$(c.totalReceived)}</div>
+      <div class="kpi-sub">Income + principal</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Monthly Income Expected</div>
+      <div class="kpi-value">${fmt$(loan.monthlyIncomeAmount)}</div>
+      <div class="kpi-sub">Due day ${loan.paymentDueDay}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Payments Recorded</div>
+      <div class="kpi-value">${c.count}</div>
+      <div class="kpi-sub">Last: ${dtFmt(c.lastPayment)}</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab ${detailTab==='overview' ?'active':''}" onclick="detailTab='overview';render()">Loan Info</button>
+    <button class="tab ${detailTab==='payments' ?'active':''}" onclick="detailTab='payments';render()">Payment History (${ps.length})</button>
+    <button class="tab ${detailTab==='balance'  ?'active':''}" onclick="detailTab='balance';render()">Running Balance</button>
+  </div>
+
+  ${detailTab === 'overview' ? vLoanInfo(loan)          : ''}
+  ${detailTab === 'payments' ? vPaymentTable(ps, lid)   : ''}
+  ${detailTab === 'balance'  ? vRunningBalance(loan)    : ''}`;
+}
+
+// ▶ Loan structure metadata — edit labels/colors/descriptions here
+const LS_META = {
+  interest_only:       { label:'Interest Only',            color:'var(--green)',  bg:'var(--green-bg)',  desc:'Borrower pays interest monthly. Principal stays unchanged until settlement.' },
+  reducing_balance:    { label:'Monthly Reducing Balance',  color:'var(--accent)', bg:'var(--accent-bg)', desc:'Regular monthly payments reduce the outstanding principal balance.' },
+  lump_sum_settlement: { label:'Lump Sum Settlement',       color:'#7c3aed',       bg:'#f5f3ff',          desc:'Principal is cleared by one or more large lump sum payments.' },
+  flexible:            { label:'Flexible / Mixed',          color:'var(--amber)',  bg:'var(--amber-bg)',  desc:'Combination — interest payments plus occasional principal reductions.' },
+};
+function lsBadge(s) {
+  const m = LS_META[s] || { label: s || 'Not Set', color:'var(--text-3)', bg:'var(--bg-row)' };
+  return `<span class="badge" style="background:${m.bg};color:${m.color}">${m.label}</span>`;
+}
+
+function vLoanInfo(loan) {
+  const ls = LS_META[loan.loanStructure];
+  return `
+  <div class="card card-body">
+    ${ls ? `
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:${ls.bg};border-radius:var(--r);margin-bottom:16px;border:1px solid ${ls.color}33">
+      <svg width="15" height="15" viewBox="0 0 20 20" fill="${ls.color}" style="flex-shrink:0;margin-top:2px"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+      <div>
+        <div style="font-weight:700;font-size:12px;color:${ls.color}">${ls.label}</div>
+        <div style="font-size:11.5px;color:var(--text-2);margin-top:2px">${ls.desc}</div>
+      </div>
+    </div>` : ''}
+    <div class="detail-grid">
+      <div><div class="df-label">Borrower Name</div>    <div class="df-value">${loan.borrowerName}</div></div>
+      <div><div class="df-label">Account Number</div>   <div class="df-value">${loan.accountNumber}</div></div>
+      <div><div class="df-label">Loan ID</div>          <div class="df-value">${loan.id}</div></div>
+      <div><div class="df-label">Start Date</div>       <div class="df-value">${dtFmt(loan.startDate)}</div></div>
+      <div><div class="df-label">Payment Due Day</div>  <div class="df-value">Day ${loan.paymentDueDay} of month</div></div>
+      <div><div class="df-label">Loan Term</div>        <div class="df-value">${loan.loanTermMonths ? loan.loanTermMonths + ' months' : '—'}</div></div>
+      <div><div class="df-label">Loan Structure</div>   <div class="df-value">${lsBadge(loan.loanStructure)}</div></div>
+      <div><div class="df-label">Status</div>           <div class="df-value">${badge(loan.status)}</div></div>
+      ${loan.contactInfo ? `<div style="grid-column:span 3"><div class="df-label">Contact</div><div class="df-value small">${loan.contactInfo}</div></div>` : ''}
+    </div>
+    ${loan.notes ? `<hr class="divider"><div class="df-label">Notes</div><div style="margin-top:5px;font-size:13px;color:var(--text-2);white-space:pre-wrap">${loan.notes}</div>` : ''}
+  </div>`;
+}
+
+function vPaymentTable(ps, lid) {
+  if (!ps.length) return `
+  <div class="card card-body empty">
+    <h3>No payments recorded yet</h3>
+    <p>Click "Add Payment" to record the first payment.</p>
+    <button class="btn btn-primary" style="margin-top:14px" onclick="openPaymentModal('${lid}')">Add First Payment</button>
+  </div>`;
+  return `
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Date</th><th>Type</th><th>Total Amount</th>
+          <th>Income Portion</th><th>Principal Portion</th>
+          <th>Method</th><th>Remarks</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${ps.map(p => `
+          <tr>
+            <td class="nowrap">${dtFmt(p.paymentDate)}</td>
+            <td><span style="color:${ptColor(p.paymentType)};font-weight:700;font-size:11.5px">${ptLabel(p.paymentType)}</span></td>
+            <td class="num">${fmt$(p.amount)}</td>
+            <td class="num num-green">${p.incomePortion    ? fmt$(p.incomePortion)    : '<span class="muted">—</span>'}</td>
+            <td class="num" style="color:var(--accent)">${p.principalPortion ? fmt$(p.principalPortion) : '<span class="muted">—</span>'}</td>
+            <td class="small muted">${pmLabel(p.paymentMethod)}</td>
+            <td class="small muted">${p.remarks || '—'}</td>
+            <td>
+              <button class="btn-icon" title="Delete" onclick="delPayment('${p.id}','${p.loanId}')">
+                <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+              </button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function vRunningBalance(loan) {
+  const ps = [...payments.filter(p => p.loanId === loan.id)]
+    .sort((a, b) => a.paymentDate.localeCompare(b.paymentDate));
+  let bal = loan.originalPrincipal;
+  return `
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>#</th><th>Date</th><th>Event</th>
+          <th>Income</th><th>Principal Paid</th><th>Principal Balance</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td class="muted small">—</td>
+            <td class="nowrap">${dtFmt(loan.startDate)}</td>
+            <td><strong>Loan Originated</strong></td>
+            <td>—</td><td>—</td>
+            <td class="num num-accent">${fmt$(bal)}</td>
+          </tr>
+          ${ps.map((p, i) => {
+            bal = Math.max(0, bal - (p.principalPortion || 0));
+            return `<tr>
+              <td class="muted small">${i + 1}</td>
+              <td class="nowrap">${dtFmt(p.paymentDate)}</td>
+              <td>
+                <span style="color:${ptColor(p.paymentType)};font-weight:700;font-size:11px">${ptLabel(p.paymentType)}</span>
+                ${p.remarks ? ` <span class="muted small">— ${p.remarks}</span>` : ''}
+              </td>
+              <td class="num num-green">${p.incomePortion    ? fmt$(p.incomePortion)    : '<span class="muted">—</span>'}</td>
+              <td class="num" style="color:var(--accent)">${p.principalPortion ? fmt$(p.principalPortion) : '<span class="muted">—</span>'}</td>
+              <td class="num num-accent bold">${fmt$(bal)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// VIEW: REPORTS
+// ══════════════════════════════════════════════════════
+function vReports() {
+  const mon     = monthlySummary(12);
+  const totInc  = mon.reduce((s, m) => s + m.income,    0);
+  const totPri  = mon.reduce((s, m) => s + m.principal, 0);
+  const totAll  = mon.reduce((s, m) => s + m.total,     0);
+  const totCnt  = mon.reduce((s, m) => s + m.count,     0);
+
+  return `
+  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+    <button class="btn btn-ghost" onclick="expLoans()">Export Loans CSV</button>
+    <button class="btn btn-ghost" onclick="expPayments()">Export Payments CSV</button>
+    <button class="btn btn-ghost" onclick="window.print()">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a1 1 0 001 1h8a1 1 0 001-1v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a1 1 0 00-1-1H6a1 1 0 00-1 1zm2 0h6v3H7V4zm-1 9v3h8v-3H6zm9-4a1 1 0 110 2 1 1 0 010-2z" clip-rule="evenodd"/></svg>
+      Print
+    </button>
+  </div>
+
+  <div class="report-section">
+    <div class="section-hdr"><span class="section-title">Monthly Collection Summary — Last 12 Months</span></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Month</th><th>Income Collected</th><th>Principal Received</th><th>Total Collected</th><th>Payments</th>
+          </tr></thead>
+          <tbody>
+            ${mon.map(m => `
+            <tr>
+              <td class="bold">${m.lbl}</td>
+              <td class="num num-green">${fmt$(m.income)}</td>
+              <td class="num" style="color:var(--accent)">${fmt$(m.principal)}</td>
+              <td class="num">${fmt$(m.total)}</td>
+              <td class="muted small">${m.count}</td>
+            </tr>`).join('')}
+          </tbody>
+          <tfoot>
+            <tr class="tfoot-total">
+              <td>TOTAL</td>
+              <td class="num num-green">${fmt$(totInc)}</td>
+              <td class="num" style="color:var(--accent)">${fmt$(totPri)}</td>
+              <td class="num">${fmt$(totAll)}</td>
+              <td class="muted small">${totCnt}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="report-section">
+    <div class="section-hdr"><span class="section-title">Loan Portfolio Summary</span></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Borrower</th><th>Account</th><th>Original</th>
+            <th>Repaid</th><th>Outstanding</th>
+            <th>Income Received</th><th>Total Received</th><th>Status</th>
+          </tr></thead>
+          <tbody>
+            ${loans.map(l => {
+              const c = calcLoan(l.id);
+              return `<tr>
+                <td class="bold">${l.borrowerName}</td>
+                <td class="muted small">${l.accountNumber}</td>
+                <td class="num">${fmt$(l.originalPrincipal)}</td>
+                <td class="num num-green">${fmt$(c.principalRepaid)}</td>
+                <td class="num num-accent">${fmt$(c.outstanding)}</td>
+                <td class="num num-green">${fmt$(c.incomeReceived)}</td>
+                <td class="num">${fmt$(c.totalReceived)}</td>
+                <td>${badge(l.status)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+          <tfoot>
+            <tr class="tfoot-total">
+              <td colspan="2">TOTAL</td>
+              <td class="num">${fmt$(loans.reduce((s,l) => s + l.originalPrincipal, 0))}</td>
+              <td class="num num-green">${fmt$(loans.reduce((s,l) => s + calcLoan(l.id).principalRepaid, 0))}</td>
+              <td class="num num-accent">${fmt$(loans.reduce((s,l) => s + calcLoan(l.id).outstanding,   0))}</td>
+              <td class="num num-green">${fmt$(loans.reduce((s,l) => s + calcLoan(l.id).incomeReceived, 0))}</td>
+              <td class="num">${fmt$(loans.reduce((s,l) => s + calcLoan(l.id).totalReceived,  0))}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// VIEW: IMPORT / EXPORT
+// ══════════════════════════════════════════════════════
+function vImport() {
+  const lf = [
+    ['id',                 'Loan ID, e.g. L001'],
+    ['borrowerName',       'Full name of borrower'],
+    ['accountNumber',      'Account reference number'],
+    ['startDate',          'YYYY-MM-DD format'],
+    ['originalPrincipal',  'Number only, no $ — e.g. 250000'],
+    ['monthlyIncomeAmount','Expected monthly income amount'],
+    ['paymentDueDay',      'Day number 1–31'],
+    ['status',             'Active | Late | Restructured | Closed'],
+    ['loanStructure',      'interest_only | reducing_balance | lump_sum_settlement | flexible'],
+    ['notes',              'Optional free text'],
+    ['contactInfo',        'Optional email or phone'],
+    ['loanTermMonths',     'Optional number of months'],
+  ];
+  const pf = [
+    ['loanId',             'Must exactly match the id field in loans'],
+    ['paymentDate',        'YYYY-MM-DD format'],
+    ['amount',             'Total payment amount received'],
+    ['paymentType',        'monthly_income | principal_repayment | lump_sum | mixed'],
+    ['incomePortion',      'Income / interest portion — does NOT reduce principal'],
+    ['principalPortion',   'Principal portion — REDUCES outstanding principal'],
+    ['paymentMethod',      'cash | bank_transfer | other'],
+    ['remarks',            'Optional notes'],
+  ];
+  const row = ([f, d]) =>
+    `<div style="display:flex;gap:8px;margin-bottom:5px;font-size:12px"><code style="min-width:165px">${f}</code><span class="muted">${d}</span></div>`;
+
+  return `
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+    <div>
+      <div class="card card-body" style="margin-bottom:16px">
+        <div class="card-title">Import Loans from CSV</div>
+        <p class="muted small" style="margin-bottom:14px">Upload a CSV exported from Google Sheets. Existing IDs are updated; new IDs are added.</p>
+        <div class="drop-zone" onclick="document.getElementById('inp-loans').click()">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <p>Click to select Loans CSV</p>
+          <p style="font-size:10.5px;margin-top:2px">Columns: id, borrowerName, accountNumber, startDate…</p>
+        </div>
+        <input type="file" id="inp-loans" accept=".csv" style="display:none" onchange="importLoans(this)">
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="dlTemplate('loans')">Download Loan Template</button>
+      </div>
+      <div class="card card-body">
+        <div class="card-title">Import Payments from CSV</div>
+        <p class="muted small" style="margin-bottom:14px">Payments are appended — clear existing data first if re-importing all.</p>
+        <div class="drop-zone" onclick="document.getElementById('inp-pay').click()">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <p>Click to select Payments CSV</p>
+        </div>
+        <input type="file" id="inp-pay" accept=".csv" style="display:none" onchange="importPayments(this)">
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="dlTemplate('payments')">Download Payment Template</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card card-body" style="margin-bottom:16px">
+        <div class="card-title">Export Data</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn btn-ghost" onclick="expLoans()">Export All Loans (CSV)</button>
+          <button class="btn btn-ghost" onclick="expPayments()">Export All Payments (CSV)</button>
+        </div>
+      </div>
+      <div class="card card-body" style="margin-bottom:16px;border-color:var(--green)">
+        <div class="card-title" style="display:flex;align-items:center;gap:7px">
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="var(--green)"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+          Local Database Status
+        </div>
+        <div id="db-status-detail" style="font-size:12px;color:var(--text-2);margin-bottom:12px;line-height:1.6">
+          Your data is saved automatically in this browser's local storage every time you make a change. It will still be here next time you open this file.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn btn-ghost" onclick="manualSave()">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h1a2 2 0 012 2v7a2 2 0 01-2 2H7a2 2 0 01-2-2V8a2 2 0 012-2h1v5.586l-1.293-1.293z"/></svg>
+            Save Now
+          </button>
+          <button class="btn btn-ghost" style="color:var(--red);border-color:var(--red)" onclick="clearStorage()">
+            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd"/></svg>
+            Reset to Demo Data
+          </button>
+        </div>
+      </div>
+      <div class="card card-body">
+        <div class="card-title">CSV Column Reference</div>
+        <p class="muted small" style="margin-bottom:12px">Use these exact column header names when preparing your Google Sheets export (File → Download → CSV).</p>
+        <div style="margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text-2);margin-bottom:7px">Loans CSV Columns</div>
+          ${lf.map(row).join('')}
+        </div>
+        <hr class="divider">
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--text-2);margin-bottom:7px">Payments CSV Columns</div>
+          ${pf.map(row).join('')}
+        </div>
+        <hr class="divider">
+        <div class="muted" style="font-size:11px;line-height:1.6">
+          <strong style="color:var(--text-2)">Key rule:</strong>
+          <code>principalPortion</code> reduces outstanding principal.
+          <code>incomePortion</code> is income only — it does <em>not</em> touch principal.
+          For mixed payments, the two portions must add up to <code>amount</code>.
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// MODAL: ADD / EDIT LOAN
+// ══════════════════════════════════════════════════════
+function openLoanModal(editId) {
+  const l  = editId ? loans.find(x => x.id === editId) : null;
+  const v  = (k, def) => l ? (l[k] !== undefined && l[k] !== null ? l[k] : def || '') : (def || '');
+  const opts = ['Active','Late','Restructured','Closed'].map(s =>
+    `<option value="${s}" ${v('status','Active') === s ? 'selected' : ''}>${s}</option>`).join('');
+
+  showModal(`
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <span class="modal-title">${l ? 'Edit Loan — ' + l.borrowerName : 'New Loan'}</span>
+      <button class="btn-icon" onclick="closeModal()">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="fgrid">
+        <div class="fg">
+          <label>Borrower Name *</label>
+          <input class="inp" id="lf-name"      type="text"   value="${v('borrowerName')}"       placeholder="Full name">
+        </div>
+        <div class="fg">
+          <label>Account Number *</label>
+          <input class="inp" id="lf-acc"       type="text"   value="${v('accountNumber')}"      placeholder="ACC-2024-001">
+        </div>
+        <div class="fg">
+          <label>Loan ID</label>
+          <input class="inp" id="lf-id"        type="text"   value="${v('id')}"                 placeholder="Auto if blank" ${l ? 'readonly' : ''}>
+          <span class="form-hint">${l ? 'Loan ID cannot be changed after creation' : 'Leave blank to auto-generate'}</span>
+        </div>
+        <div class="fg">
+          <label>Start Date *</label>
+          <input class="inp" id="lf-date"      type="date"   value="${v('startDate')}">
+        </div>
+        <div class="fg">
+          <label>Original Principal ($) *</label>
+          <input class="inp" id="lf-principal" type="number" value="${v('originalPrincipal')}"  placeholder="e.g. 250000" min="0" step="0.01">
+        </div>
+        <div class="fg">
+          <label>Monthly Income Expected ($)</label>
+          <input class="inp" id="lf-income"    type="number" value="${v('monthlyIncomeAmount')}" placeholder="e.g. 2500"   min="0" step="0.01">
+        </div>
+        <div class="fg">
+          <label>Payment Due Day (1–31)</label>
+          <input class="inp" id="lf-dueday"    type="number" value="${v('paymentDueDay', 1)}"   min="1" max="31">
+        </div>
+        <div class="fg">
+          <label>Loan Term (Months)</label>
+          <input class="inp" id="lf-term"      type="number" value="${v('loanTermMonths')}"     placeholder="Optional" min="1">
+        </div>
+        <div class="fg">
+          <label>Status</label>
+          <select class="inp" id="lf-status">${opts}</select>
+        </div>
+        <div class="fg">
+          <label>Loan Structure / Repayment Type</label>
+          <select class="inp" id="lf-structure">
+            <option value="interest_only"       ${v('loanStructure','interest_only')==='interest_only'        ?'selected':''}>Interest Only — borrower pays interest, principal stays</option>
+            <option value="reducing_balance"    ${v('loanStructure','interest_only')==='reducing_balance'     ?'selected':''}>Monthly Reducing Balance — payments reduce principal</option>
+            <option value="lump_sum_settlement" ${v('loanStructure','interest_only')==='lump_sum_settlement'  ?'selected':''}>Lump Sum Settlement — principal cleared by lump payment(s)</option>
+            <option value="flexible"            ${v('loanStructure','interest_only')==='flexible'             ?'selected':''}>Flexible / Mixed — combination arrangement</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Contact Info</label>
+          <input class="inp" id="lf-contact"   type="text"   value="${v('contactInfo')}"        placeholder="Email or phone">
+        </div>
+        <div class="fg full">
+          <label>Notes</label>
+          <textarea class="inp" id="lf-notes">${v('notes')}</textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLoan('${editId || ''}')">${l ? 'Save Changes' : 'Create Loan'}</button>
+    </div>
+  </div>`);
+}
+
+function saveLoan(editId) {
+  const g = id => document.getElementById(id)?.value?.trim();
+  const name      = g('lf-name');
+  const acc       = g('lf-acc');
+  const date      = g('lf-date');
+  const principal = parseFloat(g('lf-principal'));
+  if (!name || !acc || !date || isNaN(principal)) {
+    toast('Please complete all required fields (*).', 'err'); return;
+  }
+  if (editId) {
+    const l = loans.find(x => x.id === editId);
+    l.borrowerName        = name;
+    l.accountNumber       = acc;
+    l.startDate           = date;
+    l.originalPrincipal   = principal;
+    l.monthlyIncomeAmount = parseFloat(g('lf-income'))  || 0;
+    l.paymentDueDay       = parseInt(g('lf-dueday'))    || 1;
+    l.loanTermMonths      = parseInt(g('lf-term'))      || null;
+    l.status              = g('lf-status');
+    l.loanStructure       = g('lf-structure') || 'interest_only';
+    l.contactInfo         = g('lf-contact');
+    l.notes               = g('lf-notes');
+    toast('Loan updated.');
+  } else {
+    const newId = g('lf-id') || pid();
+    if (loans.find(l => l.id === newId)) { toast('That Loan ID already exists.', 'err'); return; }
+    loans.push({
+      id: newId, borrowerName: name, accountNumber: acc, startDate: date,
+      originalPrincipal: principal,
+      monthlyIncomeAmount: parseFloat(g('lf-income')) || 0,
+      paymentDueDay:       parseInt(g('lf-dueday'))   || 1,
+      loanTermMonths:      parseInt(g('lf-term'))      || null,
+      status:              g('lf-status')    || 'Active',
+      loanStructure:       g('lf-structure') || 'interest_only',
+      contactInfo:         g('lf-contact'), notes: g('lf-notes'),
+    });
+    toast('Loan created.');
+  }
+  closeModal(); autoClose(); saveToStorage(); render();
+}
+
+// ══════════════════════════════════════════════════════
+// MODAL: ADD PAYMENT
+// ══════════════════════════════════════════════════════
+function openPaymentModal(lid) {
+  const loan  = loans.find(l => l.id === lid);
+  const today = new Date().toISOString().split('T')[0];
+  showModal(`
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <span class="modal-title">Add Payment — ${loan.borrowerName}</span>
+      <button class="btn-icon" onclick="closeModal()">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="fgrid">
+        <div class="fg">
+          <label>Payment Date *</label>
+          <input class="inp" id="pf-date" type="date" value="${today}">
+        </div>
+        <div class="fg">
+          <label>Transaction Type *</label>
+          <select class="inp" id="pf-type" onchange="onTypeChange()">
+            <option value="monthly_income">Interest Payment — principal stays unchanged</option>
+            <option value="principal_repayment">Monthly Principal Reduction — regular installment</option>
+            <option value="lump_sum">Lump Sum Principal Payment — one-time offset</option>
+            <option value="mixed">Mixed: Interest + Principal — custom split</option>
+          </select>
+          <div id="pf-type-hint" style="font-size:11.5px;padding:6px 10px;border-radius:var(--r);margin-top:2px"></div>
+        </div>
+        <div class="fg full">
+          <label>Total Amount Received ($) *</label>
+          <input class="inp" id="pf-amt" type="number" placeholder="e.g. 5000" min="0" step="0.01" oninput="onAmtChange()">
+        </div>
+        <div class="fg">
+          <label>Income Portion ($)</label>
+          <input class="inp" id="pf-inc" type="number" placeholder="0" min="0" step="0.01" oninput="chkSplit()">
+          <span class="form-hint">Does NOT reduce principal</span>
+        </div>
+        <div class="fg">
+          <label>Principal Portion ($)</label>
+          <input class="inp" id="pf-pri" type="number" placeholder="0" min="0" step="0.01" oninput="chkSplit()">
+          <span class="form-hint">Reduces outstanding principal</span>
+        </div>
+        <div id="split-warn" class="full" style="display:none"></div>
+        <div class="fg">
+          <label>Payment Method</label>
+          <select class="inp" id="pf-method">
+            <option value="cash">Cash</option>
+            <option value="bank_transfer">Bank Transfer</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Remarks</label>
+          <input class="inp" id="pf-rem" type="text" placeholder="Optional notes">
+        </div>
+      </div>
+      <div style="margin-top:10px;padding:9px 12px;background:var(--bg-row);border-radius:var(--r);font-size:11.5px;color:var(--text-3)">
+        <strong style="color:var(--text-2)">Rule:</strong>
+        Only the <strong>Principal Portion</strong> reduces the outstanding balance.
+        The <strong>Income Portion</strong> is counted as earned income only.
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="savePayment('${lid}')">Record Payment</button>
+    </div>
+  </div>`);
+  onTypeChange();
+}
+
+function onTypeChange() {
+  const type  = document.getElementById('pf-type')?.value;
+  const amt   = parseFloat(document.getElementById('pf-amt')?.value) || 0;
+  const incEl = document.getElementById('pf-inc');
+  const priEl = document.getElementById('pf-pri');
+  const hint  = document.getElementById('pf-type-hint');
+  if (!incEl || !priEl) return;
+
+  // Update contextual hint
+  if (hint) {
+    const meta = PT_META[type];
+    const hintStyles = {
+      monthly_income:     'background:var(--green-bg);color:var(--green)',
+      principal_repayment:'background:var(--accent-bg);color:var(--accent)',
+      lump_sum:           'background:#f5f3ff;color:#7c3aed',
+      mixed:              'background:var(--amber-bg);color:var(--amber)',
+    };
+    hint.style.cssText = 'font-size:11.5px;padding:6px 10px;border-radius:var(--r);margin-top:2px;' + (hintStyles[type] || '');
+    hint.textContent = meta ? '→ ' + meta.desc : '';
+  }
+
+  // Auto-fill income/principal split based on type
+  const principalTypes = ['principal_repayment', 'lump_sum'];
+  if (type === 'monthly_income') {
+    incEl.value = amt || ''; incEl.readOnly = true;
+    priEl.value = 0;         priEl.readOnly = true;
+  } else if (principalTypes.includes(type)) {
+    priEl.value = amt || ''; priEl.readOnly = true;
+    incEl.value = 0;         incEl.readOnly = true;
+  } else {
+    // mixed — user sets both
+    incEl.readOnly = false; priEl.readOnly = false;
+  }
+  chkSplit();
+}
+
+function onAmtChange() {
+  const type  = document.getElementById('pf-type')?.value;
+  const amt   = parseFloat(document.getElementById('pf-amt')?.value) || 0;
+  const incEl = document.getElementById('pf-inc');
+  const priEl = document.getElementById('pf-pri');
+  if (!incEl || !priEl) return;
+  if      (type === 'monthly_income')                           { incEl.value = amt; priEl.value = 0; }
+  else if (type === 'principal_repayment' || type === 'lump_sum') { priEl.value = amt; incEl.value = 0; }
+  chkSplit();
+}
+
+function chkSplit() {
+  const type = document.getElementById('pf-type')?.value;
+  const wEl  = document.getElementById('split-warn');
+  if (!wEl || type !== 'mixed') { if (wEl) wEl.style.display = 'none'; return; }
+  const amt = parseFloat(document.getElementById('pf-amt')?.value) || 0;
+  const inc = parseFloat(document.getElementById('pf-inc')?.value) || 0;
+  const pri = parseFloat(document.getElementById('pf-pri')?.value) || 0;
+  if (Math.abs(amt - inc - pri) > 0.01) {
+    wEl.style.display = 'block';
+    wEl.innerHTML = `<div class="form-warn">⚠ Split mismatch: ${fmt$(inc)} + ${fmt$(pri)} = ${fmt$(inc + pri)}, but total is ${fmt$(amt)}</div>`;
+  } else {
+    wEl.style.display = 'none';
+  }
+}
+
+function savePayment(lid) {
+  const g   = id => document.getElementById(id)?.value;
+  const date = g('pf-date');
+  const amt  = parseFloat(g('pf-amt'));
+  const type = g('pf-type');
+  const inc  = parseFloat(g('pf-inc')) || 0;
+  const pri  = parseFloat(g('pf-pri')) || 0;
+
+  if (!date || isNaN(amt) || amt <= 0) { toast('Please enter a date and amount.', 'err'); return; }
+  if (type === 'mixed' && Math.abs(amt - inc - pri) > 0.01) {
+    toast('Fix split before saving — income + principal must equal total amount.', 'err'); return;
+  }
+  // Cap principal so balance never goes negative
+  const outstanding = calcLoan(lid).outstanding;
+  const cappedPri   = Math.min(pri, outstanding);
+  if (cappedPri < pri) toast('Principal capped at current outstanding: ' + fmt$(outstanding), 'warn');
+
+  payments.push({
+    id: pid(), loanId: lid, paymentDate: date, amount: amt, paymentType: type,
+    incomePortion:    (type === 'principal_repayment' || type === 'lump_sum') ? 0 : inc,
+    principalPortion: cappedPri,
+    paymentMethod:    g('pf-method') || 'cash',
+    remarks:          g('pf-rem') || '',
+  });
+  autoClose(); closeModal(); saveToStorage(); toast('Payment recorded.'); render();
+}
+
+function deleteLoan(lid) {
+  const loan = loans.find(l => l.id === lid);
+  if (!loan) return;
+  const payCount = payments.filter(p => p.loanId === lid).length;
+  const msg = `Delete loan for "${loan.borrowerName}" (${loan.accountNumber})?\n\n` +
+              `This will also permanently delete ${payCount} payment record${payCount !== 1 ? 's' : ''} linked to this loan.\n\nThis cannot be undone.`;
+  if (!confirm(msg)) return;
+  loans    = loans.filter(l => l.id !== lid);
+  payments = payments.filter(p => p.loanId !== lid);
+  saveToStorage();
+  toast('Loan and ' + payCount + ' payment' + (payCount !== 1 ? 's' : '') + ' deleted.');
+  // If we were on the detail page for this loan, go back to the list
+  if (curView === 'detail' && curLoan === lid) go('loans');
+  else render();
+}
+
+function delPayment(payId, lid) {
+  if (!confirm('Delete this payment? Balances will be recalculated.')) return;
+  payments = payments.filter(p => p.id !== payId);
+  autoClose(); saveToStorage(); toast('Payment deleted.'); render();
+}
+
+// ══════════════════════════════════════════════════════
+// MODAL HELPERS
+// ══════════════════════════════════════════════════════
+function showModal(html) {
+  document.getElementById('modal-root').innerHTML =
+    '<div class="overlay" onclick="closeModal(event)">' + html + '</div>';
+}
+function closeModal(e) {
+  if (!e || e.target.classList.contains('overlay'))
+    document.getElementById('modal-root').innerHTML = '';
+}
+
+// ══════════════════════════════════════════════════════
+// CSV IMPORT / EXPORT
+// ══════════════════════════════════════════════════════
+// ▶ COLUMN MAPPINGS are defined by the header arrays in expLoans() / expPayments()
+//   Adjust them to match your Google Sheets column names if needed.
+function csvEsc(v) {
+  const s = String(v === null || v === undefined ? '' : v);
+  return (s.includes(',') || s.includes('"') || s.includes('\n'))
+    ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function mkCSV(headers, rows) {
+  return [headers.join(','), ...rows.map(r => r.map(csvEsc).join(','))].join('\n');
+}
+function dlCSV(content, name) {
+  const a = document.createElement('a');
+  a.href     = URL.createObjectURL(new Blob([content], { type: 'text/csv;charset=utf-8;' }));
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Downloaded ' + name);
+}
+
+function expLoans() {
+  // ▶ Edit this header array to change export column order / names
+  const h = ['id','borrowerName','accountNumber','startDate','originalPrincipal',
+             'monthlyIncomeAmount','paymentDueDay','status','loanStructure','notes','contactInfo','loanTermMonths'];
+  dlCSV(mkCSV(h, loans.map(l => h.map(k => l[k] !== undefined ? l[k] : ''))), 'loans_export.csv');
+}
+
+function expPayments() {
+  // ▶ Edit this header array to change export column order / names
+  const h = ['id','loanId','paymentDate','amount','paymentType',
+             'incomePortion','principalPortion','paymentMethod','remarks'];
+  dlCSV(mkCSV(h, payments.map(p => h.map(k => p[k] !== undefined ? p[k] : ''))), 'payments_export.csv');
+}
+
+function dlTemplate(type) {
+  if (type === 'loans') {
+    dlCSV(
+`id,borrowerName,accountNumber,startDate,originalPrincipal,monthlyIncomeAmount,paymentDueDay,status,notes,contactInfo,loanTermMonths,loanStructure
+L001,John Doe,ACC-2024-001,2024-01-15,250000,2500,15,Active,Sample loan notes,john@example.com,36,interest_only
+L002,Jane Smith,ACC-2024-002,2024-03-01,100000,1200,1,Active,,jane@example.com,24,reducing_balance
+L003,Bob Lee,ACC-2024-003,2024-06-01,500000,0,1,Active,Lump sum borrower,bob@example.com,12,lump_sum_settlement`, 'loans_template.csv');
+  } else {
+    dlCSV(
+`loanId,paymentDate,amount,paymentType,incomePortion,principalPortion,paymentMethod,remarks
+L001,2024-02-15,2500,monthly_income,2500,0,bank_transfer,February interest payment (principal unchanged)
+L001,2024-03-15,2500,monthly_income,2500,0,bank_transfer,March interest payment (principal unchanged)
+L002,2024-04-01,1200,principal_repayment,0,1200,cash,April monthly installment (reduces principal)
+L002,2024-05-01,1200,principal_repayment,0,1200,bank_transfer,May monthly installment (reduces principal)
+L003,2024-07-01,500000,lump_sum,0,500000,bank_transfer,Full lump sum settlement of principal
+L001,2024-08-15,27500,mixed,2500,25000,bank_transfer,Mixed: interest + partial principal repayment`, 'payments_template.csv');
+  }
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+  return lines.slice(1).filter(l => l.trim()).map(line => {
+    const vals = []; let inQ = false, cur = '';
+    for (const ch of line) {
+      if (ch === '"') inQ = !inQ;
+      else if (ch === ',' && !inQ) { vals.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    vals.push(cur.trim());
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = (vals[i] || '').replace(/^"|"$/g, ''));
+    return obj;
+  });
+}
+
+function importLoans(inp) {
+  const f = inp.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const rows = parseCSV(e.target.result);
+      let n = 0;
+      rows.forEach(row => {
+        if (!row.borrowerName || !row.startDate) return;
+        const data = {
+          id:                  row.id || pid(),
+          borrowerName:        row.borrowerName,
+          accountNumber:       row.accountNumber  || '',
+          startDate:           row.startDate,
+          originalPrincipal:   parseFloat(row.originalPrincipal)   || 0,
+          monthlyIncomeAmount: parseFloat(row.monthlyIncomeAmount)  || 0,
+          paymentDueDay:       parseInt(row.paymentDueDay)          || 1,
+          status:              row.status         || 'Active',
+          notes:               row.notes          || '',
+          contactInfo:         row.contactInfo    || '',
+          loanTermMonths:      row.loanTermMonths  ? parseInt(row.loanTermMonths) : null,
+          loanStructure:       row.loanStructure   || 'interest_only',
+        };
+        const ex = loans.find(l => l.id === data.id);
+        if (ex) Object.assign(ex, data); else loans.push(data);
+        n++;
+      });
+      autoClose();
+      saveToStorage();
+      toast('Imported ' + n + ' loan' + (n !== 1 ? 's' : '') + '.');
+      render();
+    } catch (err) { toast('CSV parse error: ' + err.message, 'err'); }
+    inp.value = '';
+  };
+  r.readAsText(f);
+}
+
+function importPayments(inp) {
+  const f = inp.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const rows = parseCSV(e.target.result);
+      let n = 0;
+      rows.forEach(row => {
+        if (!row.loanId || !row.paymentDate) return;
+        payments.push({
+          id:               row.id || pid(),
+          loanId:           row.loanId,
+          paymentDate:      row.paymentDate,
+          amount:           parseFloat(row.amount)           || 0,
+          paymentType:      row.paymentType                  || 'monthly_income',
+          incomePortion:    parseFloat(row.incomePortion)    || 0,
+          principalPortion: parseFloat(row.principalPortion) || 0,
+          paymentMethod:    row.paymentMethod                || 'cash',
+          remarks:          row.remarks                      || '',
+        });
+        n++;
+      });
+      autoClose();
+      saveToStorage();
+      toast('Imported ' + n + ' payment' + (n !== 1 ? 's' : '') + '.');
+      render();
+    } catch (err) { toast('CSV parse error: ' + err.message, 'err'); }
+    inp.value = '';
+  };
+  r.readAsText(f);
+}
+
+// ══════════════════════════════════════════════════════
+// THEME TOGGLE
+// ══════════════════════════════════════════════════════
+let darkMode = false;
+const SUN_SVG  = '<path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>';
+const MOON_SVG = '<path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>';
+
+function toggleTheme() {
+  darkMode = !darkMode;
+  document.body.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+  document.getElementById('theme-icon').innerHTML = darkMode ? SUN_SVG : MOON_SVG;
+  document.getElementById('theme-lbl').textContent = darkMode ? 'Light Mode' : 'Dark Mode';
+}
+
+// ══════════════════════════════════════════════════════
+// TOAST NOTIFICATIONS
+// ══════════════════════════════════════════════════════
+let _tt;
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = type === 'err' ? 'var(--red)' : type === 'warn' ? 'var(--amber)' : 'var(--text-1)';
+  el.classList.add('on');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.classList.remove('on'), 3200);
+}
+
+// ══════════════════════════════════════════════════════
+// LOCAL STORAGE — persistent database
+// ══════════════════════════════════════════════════════
+const STORAGE_KEY = 'loantrack_v1';
+
+function saveToStorage() {
+  try {
+    const data = { loans, payments, savedAt: new Date().toISOString() };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    updateSaveIndicator(data.savedAt);
+  } catch (e) {
+    toast('Storage save failed: ' + e.message, 'err');
+  }
+}
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (data.loans && data.payments) {
+      loans    = data.loans;
+      payments = data.payments;
+      updateSaveIndicator(data.savedAt);
+      return true;
+    }
+  } catch (e) {
+    toast('Could not load saved data: ' + e.message, 'err');
+  }
+  return false;
+}
+
+function clearStorage() {
+  if (!confirm('Clear ALL saved data and reload the demo data?\n\nThis cannot be undone.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+function manualSave() {
+  saveToStorage();
+  toast('Data saved to local database.');
+}
+
+function updateSaveIndicator(isoDate) {
+  const lbl  = document.getElementById('save-lbl');
+  const icon = document.getElementById('save-icon');
+  if (!lbl) return;
+  if (!isoDate) { lbl.textContent = 'No data saved yet'; return; }
+  const d = new Date(isoDate);
+  const timeStr = d.toLocaleDateString('en-US', { month:'short', day:'numeric' }) +
+                  ' ' + d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });
+  lbl.textContent = 'Saved ' + timeStr;
+  if (icon) icon.style.color = 'var(--green)';
+}
+
+// ══════════════════════════════════════════════════════
+// INIT — load from localStorage, fall back to demo data
+// ══════════════════════════════════════════════════════
+const _hasStoredData = loadFromStorage();
+// If no stored data, save the demo data so it persists immediately
+if (!_hasStoredData) saveToStorage();
+autoClose();
+render();
+</script>
+</body>
+</html>
